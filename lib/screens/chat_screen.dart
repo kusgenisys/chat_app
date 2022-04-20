@@ -1,75 +1,50 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:chat_app/widgets/chat/newMessages.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../widgets/chat/messages.dart';
+
 class ChatScreen extends StatelessWidget {
-  ChatScreen({Key? key}) : super(key: key);
-  final TextEditingController _textEditingController = TextEditingController();
+  const ChatScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection("chats/Il3lUzD4MX3rMrVEvlG7/messages")
-                  .snapshots(),
-              builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                final documents = snap.data!.docs;
-                return ListView.builder(
-                  itemCount: documents.length,
-                  itemBuilder: (context, index) => Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Text(documents[index]['text']),
-                  ),
-                );
-              },
-            ),
-          ),
-          Row(
-            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                height: 50,
-                width: 310,
-                margin: const EdgeInsets.only(right: 10,left: 10,bottom: 10),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.only(left: 20),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    color: Colors.blueGrey.withOpacity(0.3)),
-                child: TextField(
-                  controller: _textEditingController,
-                  decoration: const InputDecoration(
-                      hintText: "Type..", border: InputBorder.none),
+      appBar: AppBar(
+        elevation: 2,
+        title: const Text("Chat"),
+        actions: [
+          DropdownButton(
+            icon: const Icon(Icons.more_vert,color: Colors.white),
+            items: [
+              DropdownMenuItem(
+                child: Row(
+                  children: const [
+                    Icon(Icons.exit_to_app,color: Colors.black),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text("Logout")
+                  ],
                 ),
-              ),
-              InkWell(
-                onTap: (){
-                  FirebaseFirestore.instance.collection("chats/Il3lUzD4MX3rMrVEvlG7/messages").add({
-                    'text': _textEditingController.text
-                  }).then((value) => _textEditingController.clear());
-                },
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  margin:const EdgeInsets.only(right: 10,bottom: 10),
-                  decoration: const BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle
-                  ),
-                  child: const Icon(Icons.send,color: Colors.white),
-                ),
+                value: "logout",
               )
             ],
+            onChanged: (itemIdentifire) {
+              if(itemIdentifire == 'logout'){
+                FirebaseAuth.instance.signOut();
+              }
+            },
           ),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: const [
+          Expanded(
+            child: Messages()
+          ),
+          NewMessages()
         ],
       ),
     );
